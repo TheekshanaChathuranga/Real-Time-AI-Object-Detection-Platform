@@ -70,14 +70,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ activePage, onSelectPage }) =>
         })}
       </div>
 
-      {/* Portfolio Info Card */}
+      {/* System Info Card */}
       <div className="p-3.5 rounded-xl bg-slate-900/70 border border-slate-800 text-xs">
         <div className="flex items-center justify-between text-slate-400 mb-1">
-          <span className="font-semibold text-slate-300">Portfolio Project 01</span>
+          <span className="font-semibold text-slate-300">Vision Core</span>
           <span className="text-[10px] text-emerald-400 font-mono">v1.0.0</span>
         </div>
         <p className="text-[11px] text-slate-400 leading-relaxed">
-          Modular CV foundation for Multi-Object Tracking & Vision Analytics.
+          High-throughput perception engine for real-time AI object detection.
         </p>
       </div>
     </aside>

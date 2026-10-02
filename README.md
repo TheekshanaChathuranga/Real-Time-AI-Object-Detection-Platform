@@ -1,4 +1,4 @@
-# PROJECT 01 — REAL-TIME AI OBJECT DETECTION PLATFORM
+# Real-Time AI Object Detection Platform
 ### High-Throughput Perception Engine & Computer Vision Platform
 
 [![Python](https://img.shields.io/badge/Python-3.11%20%7C%203.13-3776AB?logo=python&logoColor=white)](https://python.org)
@@ -13,7 +13,7 @@
 
 ## 1. Project Overview
 
-**VISION CORE** is an enterprise-grade, modular, and scalable AI Object Detection Platform engineered around state-of-the-art YOLO architectures. It serves as **Project 01 of a 9-Project Computer Vision & AI Engineering Portfolio**, architected from the ground up as a reusable perception foundation for subsequent systems (Multi-Object Tracking with ByteTrack/BoT-SORT, ANPR & OCR, Traffic Intelligence, Construction Safety, and Multimodal Vision AI).
+**VISION CORE** is an enterprise-grade, modular, and scalable AI Object Detection Platform engineered around state-of-the-art YOLO architectures (YOLOv8 & YOLOv11). Architected from the ground up as a high-throughput perception engine, it provides real-time multi-modal detection across static images, video files, live browser webcam streams via WebSockets, and industrial RTSP/IP camera feeds with sub-30ms client-side rendering.
 
 Rather than a simple one-off script, this platform delivers a layered, decoupled system with independent ML inference, background training pipelines, dataset validation, thread-isolated RTSP streaming, WebSocket-based real-time browser webcam detection, and an interactive dashboard.
 
@@ -302,21 +302,6 @@ cd frontend && npm run build
 
 ---
 
-## 11. Future Portfolio Roadmap (Projects 02–09)
+## 11. License & Author
 
-This platform provides reusable perceptual foundations for the subsequent projects in the portfolio:
-
-* **Project 02**: Multi-Object Tracking & Trajectory Analysis (ByteTrack, BoT-SORT)
-* **Project 03**: Automatic Number Plate Recognition (ANPR) & Multi-Stage OCR
-* **Project 04**: Construction Site PPE & Safety Compliance Vision Agent
-* **Project 05**: Intelligent Traffic Flow & Violation Detection Platform
-* **Project 06**: Retail Heatmaps & Customer Engagement Intelligence
-* **Project 07**: Industrial Anomaly & Defect Detection (PatchCore / Few-Shot Vision)
-* **Project 08**: Multimodal Vision-Language Assistant (VLM + RAG for Live Feeds)
-* **Project 09**: Enterprise Production MLOps, Model Drift & Distributed Serving Platform
-
----
-
-## 12. License & Author
-
-Developed by **Senior AI & Computer Vision Engineer Portfolio Initiative**. Distributed under the MIT License.
+Developed by [Theekshana Chathuranga](https://github.com/TheekshanaChathuranga). Distributed under the MIT License.
