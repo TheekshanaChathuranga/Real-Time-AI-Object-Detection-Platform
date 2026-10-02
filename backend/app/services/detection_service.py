@@ -48,7 +48,8 @@ class DetectionService:
         file: UploadFile,
         model_name: Optional[str] = None,
         conf_threshold: Optional[float] = None,
-        iou_threshold: Optional[float] = None
+        iou_threshold: Optional[float] = None,
+        classes: Optional[str] = None
     ) -> ImageDetectionResponse:
         """Execute full image detection pipeline."""
         filename = sanitize_filename(file.filename or "upload.jpg")
@@ -62,12 +63,15 @@ class DetectionService:
         session_id = str(uuid.uuid4())
         detector = get_detection_engine(model_name)
 
+        allowed_cls = [c.strip().lower() for c in classes.split(",") if c.strip()] if classes else None
+
         # Predict
         response = detector.predict_image(
             image_input=file_bytes,
             conf=conf_threshold,
             iou=iou_threshold,
-            annotate=True
+            annotate=True,
+            allowed_classes=allowed_cls
         )
 
         # Save source & annotated images

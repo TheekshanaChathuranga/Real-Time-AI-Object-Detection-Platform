@@ -13,7 +13,8 @@ export const VideoDetectPage: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [models, setModels] = useState<ModelRecord[]>([]);
   const [selectedModel, setSelectedModel] = useState<string>('yolov8n.pt');
-  const [confThreshold, setConfThreshold] = useState<number>(0.25);
+  const [confThreshold, setConfThreshold] = useState<number>(0.50);
+  const [classFilter, setClassFilter] = useState<string>('vehicles');
   const [loading, setLoading] = useState<boolean>(false);
   const [result, setResult] = useState<VideoDetectionResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -47,6 +48,12 @@ export const VideoDetectPage: React.FC = () => {
     formData.append('file', selectedFile);
     formData.append('model_name', selectedModel);
     formData.append('conf_threshold', confThreshold.toString());
+
+    if (classFilter === 'vehicles') {
+      formData.append('classes', 'car,truck,bus,motorcycle,bicycle');
+    } else if (classFilter === 'vehicles_pedestrians') {
+      formData.append('classes', 'car,truck,bus,motorcycle,bicycle,person');
+    }
 
     try {
       const res = await api.detectVideo(formData);
@@ -134,6 +141,22 @@ export const VideoDetectPage: React.FC = () => {
                 onChange={(e) => setConfThreshold(parseFloat(e.target.value))}
                 className="w-full accent-emerald-500 cursor-pointer"
               />
+            </div>
+
+            <div>
+              <label className="text-xs font-medium text-slate-400 block mb-1.5">Target Detection Classes</label>
+              <select
+                value={classFilter}
+                onChange={(e) => setClassFilter(e.target.value)}
+                className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500"
+              >
+                <option value="vehicles">🚗 Vehicles Only (Road/Highway Traffic)</option>
+                <option value="vehicles_pedestrians">🚶 Vehicles + Pedestrians</option>
+                <option value="all">🌐 All Classes (COCO 80)</option>
+              </select>
+              <p className="text-[11px] text-slate-400 mt-1">
+                Filters out non-road objects (e.g. overhead structures mistagged as train).
+              </p>
             </div>
 
             <button

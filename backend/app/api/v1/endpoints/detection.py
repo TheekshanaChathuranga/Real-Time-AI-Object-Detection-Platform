@@ -26,6 +26,7 @@ def detect_image(
     model_name: Optional[str] = Form(None, description="Model to use (defaults to active model)"),
     conf_threshold: Optional[float] = Form(None, description="Confidence threshold [0.0 - 1.0]"),
     iou_threshold: Optional[float] = Form(None, description="IoU threshold [0.0 - 1.0]"),
+    classes: Optional[str] = Form(None, description="Comma-separated class filter, e.g. car,truck,bus"),
     db: Session = Depends(get_db)
 ):
     """Run full object detection pipeline on uploaded image with bounding boxes and performance telemetry."""
@@ -34,7 +35,8 @@ def detect_image(
         file=file,
         model_name=model_name,
         conf_threshold=conf_threshold,
-        iou_threshold=iou_threshold
+        iou_threshold=iou_threshold,
+        classes=classes
     )
 
 
@@ -48,6 +50,7 @@ def detect_video(
     model_name: Optional[str] = Form(None, description="Model to use"),
     conf_threshold: Optional[float] = Form(None, description="Confidence threshold"),
     iou_threshold: Optional[float] = Form(None, description="IoU threshold"),
+    classes: Optional[str] = Form(None, description="Comma-separated class filter, e.g. car,truck,bus"),
     db: Session = Depends(get_db)
 ):
     """Run streaming frame-by-frame detection on uploaded video and generate annotated video file."""
@@ -56,7 +59,8 @@ def detect_video(
         file=file,
         model_name=model_name,
         conf_threshold=conf_threshold,
-        iou_threshold=iou_threshold
+        iou_threshold=iou_threshold,
+        classes=classes
     )
 
 

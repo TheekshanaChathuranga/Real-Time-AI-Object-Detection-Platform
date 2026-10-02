@@ -35,9 +35,9 @@ class Settings(BaseSettings):
     MAX_UPLOAD_SIZE_MB: int = 100
 
     # ML Inference
-    DEFAULT_MODEL: str = "yolov8n.pt"
+    DEFAULT_MODEL: str = "yolov8s.pt"
     DEVICE: str = "auto"
-    DEFAULT_CONF_THRESHOLD: float = 0.25
+    DEFAULT_CONF_THRESHOLD: float = 0.50
     DEFAULT_IOU_THRESHOLD: float = 0.45
 
     model_config = SettingsConfigDict(

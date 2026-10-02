@@ -14,6 +14,7 @@ from ultralytics import YOLO
 
 from ml.configs.model_configs import detect_device
 from ml.inference.postprocessor import BoundingBox, Detection, Postprocessor
+from ml.inference.temporal_smoother import TemporalSmoother
 from ml.preprocessing.image_transforms import ImagePreprocessor
 
 logger = logging.getLogger("ml.inference.detector")
@@ -80,6 +81,7 @@ class DetectionEngine:
         self.conf_threshold = conf_threshold
         self.iou_threshold = iou_threshold
         self.model: Optional[YOLO] = None
+        self.smoother = TemporalSmoother()
         self._cumulative_frames: int = 0
         self._cumulative_inference_time_ms: float = 0.0
         self._cumulative_detections: int = 0
@@ -95,7 +97,8 @@ class DetectionEngine:
         try:
             self.model = YOLO(model_path_or_name)
             self.model_name = model_path_or_name
-            # Warm up on device with small dummy input to prime kernels
+            if hasattr(self, "smoother"):
+                self.smoother.reset()
             logger.info(f"Model {model_path_or_name} loaded successfully on {self.device}.")
         except Exception as e:
             logger.error(f"Failed to load YOLO model '{model_path_or_name}': {str(e)}")
@@ -106,7 +109,8 @@ class DetectionEngine:
         image_input: Union[str, bytes, np.ndarray],
         conf: Optional[float] = None,
         iou: Optional[float] = None,
-        annotate: bool = True
+        annotate: bool = True,
+        allowed_classes: Optional[List[str]] = None
     ) -> DetectionResponse:
         """Run full object detection pipeline on a single image."""
         conf = conf if conf is not None else self.conf_threshold
@@ -134,7 +138,7 @@ class DetectionEngine:
         # Step 3: Postprocessing & Parsing
         t_post_start = time.perf_counter()
         first_result = results[0] if results else None
-        detections = Postprocessor.parse_ultralytics_result(first_result)
+        detections = Postprocessor.parse_ultralytics_result(first_result, allowed_classes=allowed_classes)
         
         annotated_img = None
         if annotate:
@@ -171,7 +175,9 @@ class DetectionEngine:
         frame: np.ndarray,
         conf: Optional[float] = None,
         iou: Optional[float] = None,
-        annotate: bool = False
+        annotate: bool = False,
+        allowed_classes: Optional[List[str]] = None,
+        smooth: bool = False
     ) -> Tuple[List[Detection], PerformanceMetrics, Optional[np.ndarray]]:
         """Optimized frame-by-frame inference for video and real-time streaming."""
         conf = conf if conf is not None else self.conf_threshold
@@ -190,8 +196,12 @@ class DetectionEngine:
 
         t_post_start = time.perf_counter()
         first_result = results[0] if results else None
-        detections = Postprocessor.parse_ultralytics_result(first_result)
+        detections = Postprocessor.parse_ultralytics_result(first_result, allowed_classes=allowed_classes)
         
+        # Apply temporal smoothing to stop class flickering (e.g. truck <-> bus)
+        if smooth:
+            detections = self.smoother.update(detections)
+
         annotated_frame = None
         if annotate:
             annotated_frame = Postprocessor.draw_detections(frame, detections)
@@ -220,9 +230,11 @@ class DetectionEngine:
         output_path: Optional[str] = None,
         conf: Optional[float] = None,
         iou: Optional[float] = None,
+        allowed_classes: Optional[List[str]] = None,
+        smooth: bool = True,
         progress_callback: Optional[Any] = None
     ) -> Generator[Dict[str, Any], None, None]:
-        """Process video frame-by-frame without loading the entire video into RAM."""
+        """Process video frame-by-frame with anti-jitter temporal smoothing."""
         cap = cv2.VideoCapture(source_path)
         if not cap.isOpened():
             raise ValueError(f"Unable to open video source: {source_path}")
@@ -241,6 +253,7 @@ class DetectionEngine:
         total_detections = 0
         class_counter: Dict[str, int] = {}
         total_inference_time = 0.0
+        video_smoother = TemporalSmoother()
 
         try:
             while True:
@@ -249,12 +262,21 @@ class DetectionEngine:
                     break
 
                 frame_idx += 1
-                detections, metrics, annotated_frame = self.predict_frame(
+                detections, metrics, _ = self.predict_frame(
                     frame=frame,
                     conf=conf,
                     iou=iou,
-                    annotate=bool(output_path)
+                    annotate=False,
+                    allowed_classes=allowed_classes,
+                    smooth=False
                 )
+
+                if smooth:
+                    detections = video_smoother.update(detections)
+
+                annotated_frame = None
+                if output_path:
+                    annotated_frame = Postprocessor.draw_detections(frame, detections)
 
                 total_detections += len(detections)
                 total_inference_time += metrics.inference_time_ms

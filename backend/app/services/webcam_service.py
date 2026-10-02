@@ -15,9 +15,10 @@ class WebcamService:
     def process_webcam_frame(
         frame_base64: str,
         model_name: Optional[str] = None,
-        conf_threshold: float = 0.25,
+        conf_threshold: float = 0.50,
         iou_threshold: float = 0.45,
-        return_annotated_frame: bool = False
+        return_annotated_frame: bool = False,
+        allowed_classes: Optional[list] = None
     ) -> Dict[str, Any]:
         """Decode base64 frame, run inference, and return structured detections."""
         # Strip data URL prefix if present
@@ -32,7 +33,9 @@ class WebcamService:
             frame=frame,
             conf=conf_threshold,
             iou=iou_threshold,
-            annotate=return_annotated_frame
+            annotate=return_annotated_frame,
+            allowed_classes=allowed_classes,
+            smooth=True
         )
 
         annotated_b64 = None

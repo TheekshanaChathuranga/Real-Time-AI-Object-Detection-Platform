@@ -54,8 +54,8 @@ class StreamService:
 
         def frame_processor(frame):
             try:
-                # Run inference on frame
-                _, _, annotated = detector.predict_frame(frame, annotate=True)
+                # Run inference on frame with temporal smoothing
+                _, _, annotated = detector.predict_frame(frame, annotate=True, smooth=True)
                 if annotated is not None:
                     client.set_latest_annotated_frame(annotated)
             except Exception as e:

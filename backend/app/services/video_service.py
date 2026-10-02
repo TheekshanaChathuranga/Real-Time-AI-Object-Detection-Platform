@@ -27,7 +27,8 @@ class VideoService:
         file: UploadFile,
         model_name: Optional[str] = None,
         conf_threshold: Optional[float] = None,
-        iou_threshold: Optional[float] = None
+        iou_threshold: Optional[float] = None,
+        classes: Optional[str] = None
     ) -> VideoDetectionResponse:
         """Process video frame-by-frame and persist detection results."""
         filename = sanitize_filename(file.filename or "video.mp4")
@@ -36,6 +37,8 @@ class VideoService:
 
         session_id = str(uuid.uuid4())
         detector = get_detection_engine(model_name)
+
+        allowed_cls = [c.strip().lower() for c in classes.split(",") if c.strip()] if classes else None
 
         # Save source video to disk
         source_subpath = f"videos/sources/{session_id}_{filename}"
@@ -52,12 +55,14 @@ class VideoService:
         latency_sum = 0.0
         final_class_distribution: Dict[str, int] = {}
 
-        # Stream frames through generator
+        # Stream frames through generator with temporal anti-jitter smoothing
         for step in detector.predict_video(
             source_path=source_abs_path,
             output_path=output_abs_path,
             conf=conf_threshold,
-            iou=iou_threshold
+            iou=iou_threshold,
+            allowed_classes=allowed_cls,
+            smooth=True
         ):
             total_frames = step["total_frames"]
             fps_sum += step["fps"]

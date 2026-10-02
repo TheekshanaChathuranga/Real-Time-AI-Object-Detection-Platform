@@ -12,8 +12,9 @@ import type { Detection, ModelRecord } from '../types';
 export const LiveCameraPage: React.FC = () => {
   const [models, setModels] = useState<ModelRecord[]>([]);
   const [selectedModel, setSelectedModel] = useState<string>('yolov8n.pt');
-  const [confThreshold, setConfThreshold] = useState<number>(0.25);
+  const [confThreshold, setConfThreshold] = useState<number>(0.50);
   const [iouThreshold] = useState<number>(0.45);
+  const [classFilter, setClassFilter] = useState<string>('vehicles');
 
   const [isStreaming, setIsStreaming] = useState<boolean>(false);
   const [fps, setFps] = useState<number>(0);
@@ -143,12 +144,20 @@ export const LiveCameraPage: React.FC = () => {
         const frameBase64 = hiddenCanvas.toDataURL('image/jpeg', 0.6);
 
         isBusy = true;
+        const classesParam =
+          classFilter === 'vehicles'
+            ? 'car,truck,bus,motorcycle,bicycle'
+            : classFilter === 'vehicles_pedestrians'
+            ? 'car,truck,bus,motorcycle,bicycle,person'
+            : undefined;
+
         ws.send(
           JSON.stringify({
             frame: frameBase64,
             model: selectedModel,
             conf: confThreshold,
             iou: iouThreshold,
+            classes: classesParam,
           })
         );
         isBusy = false;
@@ -250,6 +259,20 @@ export const LiveCameraPage: React.FC = () => {
                 onChange={(e) => setConfThreshold(parseFloat(e.target.value))}
                 className="w-full accent-emerald-500 cursor-pointer"
               />
+            </div>
+
+            {/* Target Classes */}
+            <div>
+              <label className="text-xs font-medium text-slate-400 block mb-1.5">Target Detection Classes</label>
+              <select
+                value={classFilter}
+                onChange={(e) => setClassFilter(e.target.value)}
+                className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500"
+              >
+                <option value="vehicles">🚗 Vehicles Only (Road/Highway Traffic)</option>
+                <option value="vehicles_pedestrians">🚶 Vehicles + Pedestrians</option>
+                <option value="all">🌐 All Classes (COCO 80)</option>
+              </select>
             </div>
 
             {/* Start / Stop Camera Button */}

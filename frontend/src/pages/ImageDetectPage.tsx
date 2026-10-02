@@ -18,8 +18,9 @@ export const ImageDetectPage: React.FC = () => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [models, setModels] = useState<ModelRecord[]>([]);
   const [selectedModel, setSelectedModel] = useState<string>('yolov8n.pt');
-  const [confThreshold, setConfThreshold] = useState<number>(0.25);
+  const [confThreshold, setConfThreshold] = useState<number>(0.50);
   const [iouThreshold, setIouThreshold] = useState<number>(0.45);
+  const [classFilter, setClassFilter] = useState<string>('vehicles');
   const [loading, setLoading] = useState<boolean>(false);
   const [result, setResult] = useState<ImageDetectionResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -67,6 +68,12 @@ export const ImageDetectPage: React.FC = () => {
     formData.append('model_name', selectedModel);
     formData.append('conf_threshold', confThreshold.toString());
     formData.append('iou_threshold', iouThreshold.toString());
+
+    if (classFilter === 'vehicles') {
+      formData.append('classes', 'car,truck,bus,motorcycle,bicycle');
+    } else if (classFilter === 'vehicles_pedestrians') {
+      formData.append('classes', 'car,truck,bus,motorcycle,bicycle,person');
+    }
 
     try {
       const res = await api.detectImage(formData);
@@ -189,6 +196,23 @@ export const ImageDetectPage: React.FC = () => {
                 onChange={(e) => setIouThreshold(parseFloat(e.target.value))}
                 className="w-full accent-cyan-500 cursor-pointer"
               />
+            </div>
+
+            {/* Target Detection Classes */}
+            <div>
+              <label className="text-xs font-medium text-slate-400 block mb-1.5">Target Detection Classes</label>
+              <select
+                value={classFilter}
+                onChange={(e) => setClassFilter(e.target.value)}
+                className="w-full bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500"
+              >
+                <option value="vehicles">🚗 Vehicles Only (Road/Highway Traffic)</option>
+                <option value="vehicles_pedestrians">🚶 Vehicles + Pedestrians</option>
+                <option value="all">🌐 All Classes (COCO 80)</option>
+              </select>
+              <p className="text-[11px] text-slate-400 mt-1">
+                Suppresses false alarms like overhead bridges or structures detected as train.
+              </p>
             </div>
 
             {/* Run Button */}

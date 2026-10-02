@@ -40,16 +40,19 @@ async def websocket_live_detection(websocket: WebSocket):
                     continue
 
                 model_name = data.get("model")
-                conf = float(data.get("conf", 0.25))
+                conf = float(data.get("conf", 0.50))
                 iou = float(data.get("iou", 0.45))
                 annotate = bool(data.get("annotate", False))
+                classes_data = data.get("classes")
+                allowed_cls = [c.strip().lower() for c in classes_data.split(",") if c.strip()] if isinstance(classes_data, str) and classes_data else None
 
                 result = WebcamService.process_webcam_frame(
                     frame_base64=frame_b64,
                     model_name=model_name,
                     conf_threshold=conf,
                     iou_threshold=iou,
-                    return_annotated_frame=annotate
+                    return_annotated_frame=annotate,
+                    allowed_classes=allowed_cls
                 )
 
                 await websocket.send_json(result)
